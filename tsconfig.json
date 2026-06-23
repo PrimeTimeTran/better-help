@@ -1,28 +1,16 @@
 {
   "compilerOptions": {
-    "types": ["node"],
     "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "commonjs",      
+    "moduleResolution": "node",
+    "esModuleInterop": true,
     "lib": ["ES2022"],
     "outDir": "dist",
     "rootDir": "src",
     "strict": true,
-    "esModuleInterop": true,
     "skipLibCheck": true,
-    "sourceMap": true,
-    "forceConsistentCasingInFileNames": true,
-    "baseUrl": ".",
-    "paths": {
-      "*": ["*", "../node_modules/*"]
-    }
+    "types": ["node", "mocha", "vitest/globals"]
   },
-  "include": [
-    "src",
-    "../node_modules/@types" 
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "include": ["src/**/*.ts", "test/**/*.ts", "src/test/suite/suite.backup"],
+  "exclude": ["node_modules", "dist"]
 }

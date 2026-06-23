@@ -1,29 +1,6 @@
-const esbuild = require("esbuild");
+import esbuild from "esbuild";
 
-const production = process.argv.includes("--production");
-const watch = process.argv.includes("--watch");
-
-/**
- * @type {import('esbuild').Plugin}
- */
-const esbuildProblemMatcherPlugin = {
-  name: "esbuild-problem-matcher",
-
-  setup(build) {
-    build.onStart(() => {
-      console.log("[watch] build started");
-    });
-    build.onEnd((result) => {
-      result.errors.forEach(({ text, location }) => {
-        console.error(`✘ [ERROR] ${text}`);
-        console.error(
-          `    ${location.file}:${location.line}:${location.column}:`,
-        );
-      });
-      console.log("[watch] build finished");
-    });
-  },
-};
+const bundleBuild = process.argv.includes("--bundle-build");
 
 async function main() {
   const ctx = await esbuild.context({
@@ -31,28 +8,26 @@ async function main() {
     bundle: true,
     platform: "node",
     format: "cjs",
-
-    // 🚨 ADD THIS:
     target: "node18",
-
     external: ["vscode"],
-
     sourcemap: true,
     minify: false,
-
-    // 🚨 IMPORTANT:
-    supported: {
-      "dynamic-import": false,
-    },
-
     outfile: "dist/extension.js",
+    logLevel: "info",
   });
-  if (watch) {
-    await ctx.watch();
-  } else {
+
+  if (bundleBuild) {
+    console.log("Building...");
     await ctx.rebuild();
     await ctx.dispose();
+
+    console.log("Build complete");
+    return;
   }
+
+  console.log("Watching");
+  await ctx.watch();
+  console.log("Watching for changes...");
 }
 
 main().catch((e) => {

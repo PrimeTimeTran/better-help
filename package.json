@@ -1,7 +1,7 @@
 {
   "name": "better-help",
   "displayName": "Better Help",
-  "version": "0.1.1",
+  "version": "0.0.2",
   "description": "Readability-focused formatting tools for JSX and CSS.",
   "categories": [
     "Other"
@@ -14,20 +14,14 @@
   "publisher": "loitran",
   "main": "./dist/extension.js",
   "scripts": {
-    "vscode:prepublish": "pnpm run package",
-    "compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
-    "watch": "npm-run-all -p watch:*",
+    "compile": "pnpm run check-types && pnpm run lint && node esbuild.js --bundle-build",
+    "check-types": "tsc",
+    "build": "node esbuild.js",
+    "watch": "npm-run-all -p watch:esbuild watch:tsc",
     "watch:esbuild": "node esbuild.js --watch",
-    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "package": "pnpm run check-types && pnpm run lint && node esbuild.js --production",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
-    "check-types": "tsc --noEmit",
-    "lint": "eslint src",
-    "test": "vitest run",
-    "test:unit": "vitest",
-    "test:integration": "node ./out/test/runTest.js"
+    "watch:tsc": "tsc --noEmit --watch",
+    "test": "vitest",
+    "lint": "eslint src"
   },
   "devDependencies": {
     "@babel/generator": "^7.29.7",
@@ -37,7 +31,7 @@
     "@types/babel__generator": "^7.27.0",
     "@types/babel__traverse": "^7.28.0",
     "@types/mocha": "^10.0.10",
-    "@types/node": "22.x",
+    "@types/node": "^22.20.0",
     "@types/vscode": "^1.120.0",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",

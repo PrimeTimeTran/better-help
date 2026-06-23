@@ -1,53 +1,30 @@
 import * as vscode from "vscode";
-
-export async function cleanRust(doc: vscode.TextDocument) {
-  const codeActions = await vscode.commands.executeCommand<vscode.CodeAction[]>(
-    "vscode.executeCodeActionProvider",
-    doc.uri,
-    new vscode.Range(0, 0, doc.lineCount, 0),
-    vscode.CodeActionKind.QuickFix.value,
-  );
-
-  if (!codeActions || codeActions.length === 0) {
-    vscode.window.showInformationMessage("No fixes found by rust-analyzer.");
-    return;
-  }
-
-  const fixActions = codeActions.filter(
-    (action) => action.title.includes("Remove unused import") || action.title.includes("Import"),
-  );
-
-  // Combine edits to avoid range conflicts
-  const combinedEdit = new vscode.WorkspaceEdit();
-
-  for (const action of fixActions) {
-    if (action.edit) {
-      // Merge individual edits into one
-      // Note: This works best if edits don't overlap
-      for (const [uri, edits] of action.edit.entries()) {
-        combinedEdit.set(uri, edits);
-      }
-    }
-  }
-
-  const success = await vscode.workspace.applyEdit(combinedEdit);
-  if (success) {
-    vscode.window.showInformationMessage(`Applied ${fixActions.length} fixes.`);
-  }
-}
+import { cleanRust } from "../features/rust-cleaner";
 
 export function registerCleanRust(context: vscode.ExtensionContext) {
   const disposable = vscode.commands.registerCommand("better-help.registerCleanRust", async () => {
     const editor = vscode.window.activeTextEditor;
-    if (!editor) return;
 
-    const doc = editor.document;
-
-    if (!doc.fileName.endsWith(".rs")) {
+    // 1. Guard clause: No editor open
+    if (!editor) {
+      vscode.window.showInformationMessage("No active editor to clean.");
       return;
     }
 
-    await cleanRust(doc);
+    const doc = editor.document;
+
+    // 2. Guard clause: Only run on Rust files
+    if (doc.languageId !== "rust") {
+      vscode.window.showInformationMessage("This command only supports Rust files.");
+      return;
+    }
+
+    // 3. Delegate to the refactored cleaner
+    try {
+      await cleanRust(doc);
+    } catch (error) {
+      vscode.window.showErrorMessage(`Failed to clean Rust file: ${error}`);
+    }
   });
 
   context.subscriptions.push(disposable);
