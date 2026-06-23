@@ -1,0 +1,6 @@
+dist/
+node_modules/
+omit/
+dist/
+wip/
+notes/

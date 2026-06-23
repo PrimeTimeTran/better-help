@@ -1,0 +1,19 @@
+{
+  "files.exclude": {
+    ".vscode": true,
+    "node_modules": true,
+    "dist": true,
+    
+    "": "",
+    "KEEP.end": true
+  },
+  "search.exclude": {
+      ".vscode": false,
+    "node_modules": true,
+    "": "",
+    "KEEP.end": true
+},
+"cSpell.words": [
+    "foldability"
+],
+}
