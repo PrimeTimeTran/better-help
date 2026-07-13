@@ -2,16 +2,22 @@
   "name": "better-help",
   "displayName": "Better Help",
   "version": "0.0.2",
-  "description": "Readability-focused formatting tools for JSX and CSS.",
+  "description": "A general purpose help tool for developers who write .js, .jsx, .ts. .tsx, .rs & more",
   "categories": [
-    "Other"
+    "cleaner",
+    "productivity"
   ],
   "license": "MIT",
+  "author": {
+    "name": "Loi Tran",
+    "email": "primetimetran@gmail.com",
+    "url": "https://kb-blog-primetimetran.vercel.app"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourname/better-help"
+    "url": "https://github.com/primetimetran/better-help"
   },
-  "publisher": "loitran",
+  "publisher": "primetimetran",
   "main": "./dist/extension.js",
   "scripts": {
     "compile": "pnpm run check-types && pnpm run lint && node esbuild.js --bundle-build",
