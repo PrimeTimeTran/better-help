@@ -1,3 +1,4 @@
+/* eslint-disable curly */
 import * as vscode from "vscode";
 import { log } from "../logger";
 import path from "path";
@@ -24,7 +25,6 @@ export async function cleanRust(doc: vscode.TextDocument) {
     vscode.CodeActionKind.QuickFix.value,
   );
 
-  // 2. Perform standard quick-fix cleanups
   if (codeActions && codeActions.length > 0) {
     const cleaners: Cleaner[] = [cleanImports, cleanDbg];
     for (const cleaner of cleaners) {
@@ -119,73 +119,11 @@ export async function fixUnresolvedImport(doc: vscode.TextDocument) {
   }
 }
 
-// export async function performDeepFSSearch(symbolName: string, targetDoc: vscode.TextDocument) {
-//   try {
-//     const cleanSymbol = symbolName.replace(/^crate::/, "");
-//     log(`[DeepSearch] Looking for: ${cleanSymbol}`);
-
-//     const fileUris = await vscode.workspace.findFiles("**/*.rs", "**/target/**");
-//     const filePaths = fileUris.map((uri) => uri.fsPath);
-
-//     const matchPath = await resolveSymbolLocation(filePaths, cleanSymbol);
-
-//     if (!matchPath) {
-//       log(`[DeepSearch] Failed to locate ${cleanSymbol}.`);
-//       return;
-//     }
-
-//     log(`[DeepSearch] Match found at: ${matchPath}`);
-
-//     // 1. Prepare the Edit
-//     const matchUri = vscode.Uri.file(matchPath);
-//     const edit = new vscode.WorkspaceEdit();
-
-//     // 2. Open the file to modify it (ensure it is public)
-//     const symbolDoc = await vscode.workspace.openTextDocument(matchUri);
-//     const lineIndex = findLineNumberForSymbol(symbolDoc, cleanSymbol);
-//     const line = symbolDoc.lineAt(lineIndex);
-
-//     if (!line.text.includes("pub ")) {
-//       log(`[DeepSearch] Adding 'pub' to ${cleanSymbol} at line ${lineIndex}`);
-//       edit.insert(matchUri, new vscode.Position(lineIndex, 0), "pub ");
-//     }
-
-//     // 3. Construct the import path
-//     const relativePath = vscode.workspace.asRelativePath(matchUri);
-//     let modulePath = relativePath.replace("src/", "").replace(".rs", "");
-//     modulePath = modulePath.replace(/\/mod$/, "").replace(/\//g, "::");
-
-//     const fullImport = `use crate::${modulePath}::${cleanSymbol};`;
-//     log(`[DeepSearch] Inserting import: ${fullImport}`);
-//     const doInsertNotReplace = true;
-//     if (doInsertNotReplace) {
-//       // use crate::ai::run_agent_loop;
-//       // use crate::{logger::Logger, run_agent_loop};
-//       edit.insert(targetDoc.uri, new vscode.Position(0, 0), `${fullImport}\n`);
-//       const success = await vscode.workspace.applyEdit(edit);
-//       if (success) {
-//         log(`[DeepSearch] Success! Applied edit to ${matchPath}`);
-//         vscode.window.showInformationMessage(`Fixed ${cleanSymbol} via Deep Search.`);
-//       } else {
-//         log(`[DeepSearch] applyEdit returned false.`);
-//       }
-//     } else {
-//       const currentText = targetDoc.getText();
-//       const newImport = `use crate::${modulePath}::${cleanSymbol};`;
-//       const updatedText = getUpdatedFileContent(currentText, newImport, cleanSymbol);
-//       edit.replace(targetDoc.uri, new vscode.Range(0, 0, targetDoc.lineCount, 0), updatedText);
-//     }
-//   } catch (err) {
-//     log(`[DeepSearch] CRITICAL ERROR: ${err}`);
-//   }
-// }
-
 export async function performDeepFSSearch(symbolName: string, targetDoc: vscode.TextDocument) {
   try {
     const cleanSymbol = symbolName.replace(/^crate::/, "");
     log(`[DeepSearch] Starting Pipeline for: ${cleanSymbol}`);
 
-    // 1. Resolve the path (The Smart Way)
     const fileUris = await vscode.workspace.findFiles("**/*.rs", "**/target/**");
     const filePaths = fileUris.map((uri) => uri.fsPath);
     const matchPath = await resolveSymbolLocation(filePaths, cleanSymbol);
@@ -197,10 +135,8 @@ export async function performDeepFSSearch(symbolName: string, targetDoc: vscode.
 
     log(`[DeepSearch] Match found at: ${matchPath}`);
 
-    // 2. Re-create the Uri from the path (The "Bridge")
     const matchUri = vscode.Uri.file(matchPath);
 
-    // 3. Logic to calculate the Rust import path (modulePath)
     const relativePath = vscode.workspace.asRelativePath(matchUri);
     let modulePath = relativePath
       .replace("src/", "")
@@ -212,12 +148,10 @@ export async function performDeepFSSearch(symbolName: string, targetDoc: vscode.
         ? `use crate::${cleanSymbol};`
         : `use crate::${modulePath}::${cleanSymbol};`;
 
-    // 4. Use the original logic to clean and replace
     const edit = new vscode.WorkspaceEdit();
     const currentText = targetDoc.getText();
     const cleanedText = removeBrokenImports(currentText, cleanSymbol);
 
-    // Apply full document replacement for safety
     edit.replace(targetDoc.uri, new vscode.Range(0, 0, targetDoc.lineCount, 0), cleanedText);
     edit.insert(targetDoc.uri, new vscode.Position(0, 0), `${newImport}\n`);
 
@@ -239,8 +173,7 @@ export async function getSymbolUri(symbolName: string): Promise<vscode.Uri | nul
 
     for (const line of lines) {
       if (line.includes(`fn ${symbolName}`) && !line.trim().startsWith("//")) {
-        // High score for actual definition
-        return file; // Return immediately if we found a non-commented definition
+        return file;
       }
     }
   }
@@ -266,7 +199,7 @@ export async function handleUnresolvedImport(
     return;
   }
 
-  // Scenario 3: If RA failed (no fix found), we trigger your FS Search
+  // Scenario 3: If RA failed (no fix found), we trigger FS Search
   // Extract the symbol name from the error message (e.g., "cannot find function `run_agent_loop`")
   const match = diagnostic.message.match(/`([^`]+)`/);
   const symbolName = match ? match[1] : null;
@@ -291,7 +224,7 @@ export function getUpdatedFileContent(
 // Instead of raw fs, use this to resolve your paths
 export function getWorkspacePath(relativePath: string): string {
   const workspaceRoot = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
-  if (!workspaceRoot) throw new Error("No workspace folder found!");
+    if (!workspaceRoot) throw new Error("No workspace folder found!");
   return path.join(workspaceRoot, relativePath);
 }
 
@@ -306,6 +239,5 @@ export function removeBrokenImports(currentContent: string, symbol: string): str
   let updated = currentContent.replace(simpleImportRegex, "");
   updated = updated.replace(groupImportRegex, "");
 
-  // Clean up excessive empty lines created by the removal
   return updated.replace(/\n{3,}/g, "\n\n").trim();
 }
